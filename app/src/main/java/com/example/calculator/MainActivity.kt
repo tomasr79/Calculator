@@ -51,16 +51,17 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Calculator() {
-    var displayText by remember { mutableStateOf("0") }
-    var lastNumeric by remember { mutableStateOf(false) }
-    var stateError by remember { mutableStateOf(false) }
-    var lastDot by remember { mutableStateOf(false) }
+    var displayText by remember { mutableStateOf("0") } // Variavel para armazenar e exibir o texto de entrada
+    var lastNumeric by remember { mutableStateOf(false) } // Flag para controlar se o último caractere digitado foi numérico
+    var stateError by remember { mutableStateOf(false) } // Flag para indicar se ocorreu um erro de cálculo
+    var lastDot by remember { mutableStateOf(false) } // Flag para controlar se o último caractere digitado foi um ponto decimal
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier.run {
+            fillMaxSize() // Ocupa o espaço disponivel na tela
+                .padding(16.dp)
+        }, // Adiciona padding em volta da coluna
+        verticalArrangement = Arrangement.spacedBy(8.dp) // Espaçamento vertical entre os elementos
     ) {
         BasicTextField(
             value = displayText,
@@ -69,12 +70,13 @@ fun Calculator() {
             textStyle = TextStyle(fontSize = 32.sp, color = Color.Black, textAlign = TextAlign.End),
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(40.dp)
-                .padding(end = 16.dp)
+                .padding(40.dp) // Adiciona padding ao redor do campo de texto
+                .padding(end = 16.dp) // Padding adicional à direita para espaçamento visual
         )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f)) // Espaço para empurrar os botões para a parte inferior
 
+        // Matriz de botões organizada em linhas e colunas
         val buttons = listOf(
             listOf("7", "8", "9", "/"),
             listOf("4", "5", "6", "*"),
@@ -86,21 +88,23 @@ fun Calculator() {
         buttons.forEach { row ->
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .fillMaxWidth() // Ocupa toda a largura disponível
+                    .padding(horizontal = 16.dp), // Espaçamento horizontal interno
+                horizontalArrangement = Arrangement.spacedBy(8.dp) // Espaçamento horizontal entre os botões
             ) {
                 row.forEach { label ->
                     Button(
                         onClick = {
                             when (label) {
                                 "C" -> {
+                                    // Lógica para limpar o texto e os estados
                                     displayText = "0"
                                     lastNumeric = false
                                     stateError = false
                                     lastDot = false
                                 }
                                 "=" -> {
+                                    // Lógica para realizar o cálculo quando "=" é pressionado
                                     if (lastNumeric && !stateError) {
                                         val tvValue = displayText
                                         var prefix = ""
@@ -111,6 +115,7 @@ fun Calculator() {
                                                 value = value.substring(1)
                                             }
 
+                                            // Lógica para operações matemáticas básicas (+, -, *, /)
                                             if (value.contains("-")) {
                                                 val splitValue = value.split("-")
                                                 var one = splitValue[0]
@@ -151,17 +156,8 @@ fun Calculator() {
                                                 }
 
                                                 displayText = removeZeroAfterDot((one.toDouble() / two.toDouble()).toString())
-                                            } else if (value.contains("^")) {
-                                                val splitValue = value.split("^")
-                                                var one = splitValue[0]
-                                                val two = splitValue[1]
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot(Math.pow(one.toDouble(), two.toDouble()).toString())
                                             } else if (value.contains("√")) {
+                                                // Lógica para raiz quadrada (√)
                                                 var one = value
 
                                                 if (prefix.isNotEmpty()) {
@@ -170,6 +166,7 @@ fun Calculator() {
 
                                                 displayText = removeZeroAfterDot(Math.sqrt(one.toDouble()).toString())
                                             } else if (value.contains("%")) {
+                                                // Lógica para porcentagem (%)
                                                 val splitValue = value.split("%")
                                                 var one = splitValue[0]
                                                 val two = splitValue[1]
@@ -188,6 +185,7 @@ fun Calculator() {
                                     }
                                 }
                                 "+", "-", "*", "/" -> {
+                                    // Lógica para adicionar operadores (+, -, *, /)
                                     if (lastNumeric && !stateError) {
                                         displayText += label
                                         lastNumeric = false
@@ -195,6 +193,7 @@ fun Calculator() {
                                     }
                                 }
                                 "." -> {
+                                    // Lógica para adicionar o ponto decimal (.)
                                     if (lastNumeric && !lastDot) {
                                         displayText += label
                                         lastNumeric = false
@@ -202,6 +201,7 @@ fun Calculator() {
                                     }
                                 }
                                 "+/-" -> {
+                                    // Lógica para inverter o sinal (+/-)
                                     if (!stateError) {
                                         if (displayText.startsWith("-")) {
                                             displayText = displayText.substring(1)
@@ -211,20 +211,21 @@ fun Calculator() {
                                     }
                                 }
                                 "√", "%" -> {
+                                    // Lógica para calcular a raiz quadrada (√) e porcentagem (%)
                                     if (lastNumeric && !stateError) {
                                         val tvValue = displayText
                                         var prefix = ""
                                         try {
                                             var value = tvValue
                                             if (value.startsWith("-")) {
-                                                prefix = "-"
-                                                value = value.substring(1)
-                                            }
-
-                                            if (label == "√") {
-                                                displayText = removeZeroAfterDot(Math.sqrt(value.toDouble()).toString())
-                                            } else if (label == "%") {
-                                                displayText = removeZeroAfterDot((value.toDouble() / 100).toString())
+                                                stateError = true
+                                                displayText = "Error"
+                                            } else {
+                                                if (label == "√") {
+                                                    displayText = removeZeroAfterDot(Math.sqrt(value.toDouble()).toString())
+                                                } else if (label == "%") {
+                                                    displayText = removeZeroAfterDot((value.toDouble() / 100).toString())
+                                                }
                                             }
                                         } catch (e: ArithmeticException) {
                                             e.printStackTrace()
@@ -234,6 +235,7 @@ fun Calculator() {
                                     }
                                 }
                                 else -> {
+                                    // Lógica para adicionar dígitos numéricos
                                     if (stateError) {
                                         displayText = label
                                         stateError = false
@@ -250,13 +252,12 @@ fun Calculator() {
                             }
                         },
                         modifier = Modifier
-                            .weight(1f)
-                            .aspectRatio(1f)
+                            .weight(1f) // Peso para ocupar espaço igual na linha
+                            .aspectRatio(1f) // Proporção para manter o botão quadrado
                     ) {
                         Text(
-                            text = label
+                            text = label // Texto exibido no botão
                         )
-
                     }
                 }
             }
@@ -264,6 +265,7 @@ fun Calculator() {
     }
 }
 
+// Função para remover zeros desnecessários após o ponto decimal
 private fun removeZeroAfterDot(result: String): String {
     return if (result.contains(".0")) {
         result.substring(0, result.length - 2)
@@ -271,6 +273,7 @@ private fun removeZeroAfterDot(result: String): String {
         result
     }
 }
+
 
 
 @Preview(showBackground = true)
