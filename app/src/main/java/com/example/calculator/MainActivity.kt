@@ -64,15 +64,15 @@ fun Calculator() {
             textStyle = TextStyle(fontSize = 32.sp, color = Color.Black),
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.Gray)
-                .padding(16.dp)
+                .padding(40.dp)
         )
 
         val buttons = listOf(
             listOf("7", "8", "9", "/"),
             listOf("4", "5", "6", "*"),
             listOf("1", "2", "3", "-"),
-            listOf("C", "0", "=", "+")
+            listOf("C", "√", "%", "+"),
+            listOf("0", ".", "=", "+/-")
         )
 
         buttons.forEach { row ->
@@ -143,6 +143,34 @@ fun Calculator() {
                                                 }
 
                                                 displayText = removeZeroAfterDot((one.toDouble() / two.toDouble()).toString())
+                                            } else if (value.contains("^")) {
+                                                val splitValue = value.split("^")
+                                                var one = splitValue[0]
+                                                val two = splitValue[1]
+
+                                                if (prefix.isNotEmpty()) {
+                                                    one = prefix + one
+                                                }
+
+                                                displayText = removeZeroAfterDot(Math.pow(one.toDouble(), two.toDouble()).toString())
+                                            } else if (value.contains("√")) {
+                                                var one = value
+
+                                                if (prefix.isNotEmpty()) {
+                                                    one = prefix + one
+                                                }
+
+                                                displayText = removeZeroAfterDot(Math.sqrt(one.toDouble()).toString())
+                                            } else if (value.contains("%")) {
+                                                val splitValue = value.split("%")
+                                                var one = splitValue[0]
+                                                val two = splitValue[1]
+
+                                                if (prefix.isNotEmpty()) {
+                                                    one = prefix + one
+                                                }
+
+                                                displayText = removeZeroAfterDot((one.toDouble() * two.toDouble() / 100).toString())
                                             }
                                         } catch (e: ArithmeticException) {
                                             e.printStackTrace()
@@ -156,6 +184,45 @@ fun Calculator() {
                                         displayText += label
                                         lastNumeric = false
                                         lastDot = false
+                                    }
+                                }
+                                "." -> {
+                                    if (lastNumeric && !lastDot) {
+                                        displayText += label
+                                        lastNumeric = false
+                                        lastDot = true
+                                    }
+                                }
+                                "+/-" -> {
+                                    if (!stateError) {
+                                        if (displayText.startsWith("-")) {
+                                            displayText = displayText.substring(1)
+                                        } else {
+                                            displayText = "-$displayText"
+                                        }
+                                    }
+                                }
+                                "√", "%" -> {
+                                    if (lastNumeric && !stateError) {
+                                        val tvValue = displayText
+                                        var prefix = ""
+                                        try {
+                                            var value = tvValue
+                                            if (value.startsWith("-")) {
+                                                prefix = "-"
+                                                value = value.substring(1)
+                                            }
+
+                                            if (label == "√") {
+                                                displayText = removeZeroAfterDot(Math.sqrt(value.toDouble()).toString())
+                                            } else if (label == "%") {
+                                                displayText = removeZeroAfterDot((value.toDouble() / 100).toString())
+                                            }
+                                        } catch (e: ArithmeticException) {
+                                            e.printStackTrace()
+                                            stateError = true
+                                            displayText = "Error"
+                                        }
                                     }
                                 }
                                 else -> {
@@ -193,6 +260,8 @@ private fun removeZeroAfterDot(result: String): String {
         result
     }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable
