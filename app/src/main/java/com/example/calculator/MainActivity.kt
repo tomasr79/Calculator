@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,9 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,25 +57,30 @@ fun Calculator() {
     var lastDot by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         BasicTextField(
             value = displayText,
             onValueChange = {},
             readOnly = true,
-            textStyle = TextStyle(fontSize = 32.sp, color = Color.Black),
+            textStyle = TextStyle(fontSize = 32.sp, color = Color.Black, textAlign = TextAlign.End),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(40.dp)
+                .padding(end = 16.dp)
         )
+
+        Spacer(modifier = Modifier.weight(1f))
 
         val buttons = listOf(
             listOf("7", "8", "9", "/"),
             listOf("4", "5", "6", "*"),
             listOf("1", "2", "3", "-"),
-            listOf("C", "√", "%", "+"),
-            listOf("0", ".", "=", "+/-")
+            listOf("C", "0", "=", "+"),
+            listOf("√", ".", "%", "+/-")
         )
 
         buttons.forEach { row ->
@@ -245,7 +253,10 @@ fun Calculator() {
                             .weight(1f)
                             .aspectRatio(1f)
                     ) {
-                        Text(text = label)
+                        Text(
+                            text = label
+                        )
+
                     }
                 }
             }
@@ -260,7 +271,6 @@ private fun removeZeroAfterDot(result: String): String {
         result
     }
 }
-
 
 
 @Preview(showBackground = true)
