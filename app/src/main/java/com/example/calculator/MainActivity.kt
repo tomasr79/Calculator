@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -51,213 +52,203 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Calculator() {
-    var displayText by remember { mutableStateOf("0") } // Variavel para armazenar e exibir o texto de entrada
-    var lastNumeric by remember { mutableStateOf(false) } // Flag para controlar se o último caractere digitado foi numérico
-    var stateError by remember { mutableStateOf(false) } // Flag para indicar se ocorreu um erro de cálculo
-    var lastDot by remember { mutableStateOf(false) } // Flag para controlar se o último caractere digitado foi um ponto decimal
+    var displayText by remember { mutableStateOf("0") }
+    var lastNumeric by remember { mutableStateOf(false) }
+    var stateError by remember { mutableStateOf(false) }
+    var lastDot by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.run {
-            fillMaxSize() // Ocupa o espaço disponivel na tela
-                .padding(16.dp)
-        }, // Adiciona padding em volta da coluna
-        verticalArrangement = Arrangement.spacedBy(8.dp) // Espaçamento vertical entre os elementos
-    ) {
-        BasicTextField(
-            value = displayText,
-            onValueChange = {},
-            readOnly = true,
-            textStyle = TextStyle(fontSize = 32.sp, color = Color.Black, textAlign = TextAlign.End),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(40.dp) // Adiciona padding ao redor do campo de texto
-                .padding(end = 16.dp) // Padding adicional à direita para espaçamento visual
-        )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        val isPortrait = constraints.maxHeight > constraints.maxWidth
 
-        Spacer(modifier = Modifier.weight(1f)) // Espaço para empurrar os botões para a parte inferior
-
-        // Matriz de botões organizada em linhas e colunas
-        val buttons = listOf(
-            listOf("7", "8", "9", "/"),
-            listOf("4", "5", "6", "*"),
-            listOf("1", "2", "3", "-"),
-            listOf("C", "0", "=", "+"),
-            listOf("√", ".", "%", "+/-")
-        )
-
-        buttons.forEach { row ->
-            Row(
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            BasicTextField(
+                value = displayText,
+                onValueChange = {},
+                readOnly = true,
+                textStyle = TextStyle(fontSize = 32.sp, color = Color.Black, textAlign = TextAlign.End),
                 modifier = Modifier
-                    .fillMaxWidth() // Ocupa toda a largura disponível
-                    .padding(horizontal = 16.dp), // Espaçamento horizontal interno
-                horizontalArrangement = Arrangement.spacedBy(8.dp) // Espaçamento horizontal entre os botões
-            ) {
-                row.forEach { label ->
-                    Button(
-                        onClick = {
-                            when (label) {
-                                "C" -> {
-                                    // Lógica para limpar o texto e os estados
-                                    displayText = "0"
-                                    lastNumeric = false
-                                    stateError = false
-                                    lastDot = false
-                                }
-                                "=" -> {
-                                    // Lógica para realizar o cálculo quando "=" é pressionado
-                                    if (lastNumeric && !stateError) {
-                                        val tvValue = displayText
-                                        var prefix = ""
-                                        try {
-                                            var value = tvValue
-                                            if (value.startsWith("-")) {
-                                                prefix = "-"
-                                                value = value.substring(1)
+                    .fillMaxWidth()
+                    .padding(40.dp)
+                    .padding(end = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            val buttons = listOf(
+                listOf("7", "8", "9", "/"),
+                listOf("4", "5", "6", "*"),
+                listOf("1", "2", "3", "-"),
+                listOf("C", "0", "=", "+"),
+                listOf("√", ".", "%", "+/-")
+            )
+
+            buttons.forEach { row ->
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    row.forEach { label ->
+                        Button(
+                            onClick = {
+                                when (label) {
+                                    "C" -> {
+                                        displayText = "0"
+                                        lastNumeric = false
+                                        stateError = false
+                                        lastDot = false
+                                    }
+                                    "=" -> {
+                                        if (lastNumeric && !stateError) {
+                                            val tvValue = displayText
+                                            var prefix = ""
+                                            try {
+                                                var value = tvValue
+                                                if (value.startsWith("-")) {
+                                                    prefix = "-"
+                                                    value = value.substring(1)
+                                                }
+
+                                                if (value.contains("-")) {
+                                                    val splitValue = value.split("-")
+                                                    var one = splitValue[0]
+                                                    val two = splitValue[1]
+
+                                                    if (prefix.isNotEmpty()) {
+                                                        one = prefix + one
+                                                    }
+
+                                                    displayText = removeZeroAfterDot((one.toDouble() - two.toDouble()).toString())
+                                                } else if (value.contains("+")) {
+                                                    val splitValue = value.split("+")
+                                                    var one = splitValue[0]
+                                                    val two = splitValue[1]
+
+                                                    if (prefix.isNotEmpty()) {
+                                                        one = prefix + one
+                                                    }
+
+                                                    displayText = removeZeroAfterDot((one.toDouble() + two.toDouble()).toString())
+                                                } else if (value.contains("*")) {
+                                                    val splitValue = value.split("*")
+                                                    var one = splitValue[0]
+                                                    val two = splitValue[1]
+
+                                                    if (prefix.isNotEmpty()) {
+                                                        one = prefix + one
+                                                    }
+
+                                                    displayText = removeZeroAfterDot((one.toDouble() * two.toDouble()).toString())
+                                                } else if (value.contains("/")) {
+                                                    val splitValue = value.split("/")
+                                                    var one = splitValue[0]
+                                                    val two = splitValue[1]
+
+                                                    if (prefix.isNotEmpty()) {
+                                                        one = prefix + one
+                                                    }
+
+                                                    displayText = removeZeroAfterDot((one.toDouble() / two.toDouble()).toString())
+                                                } else if (value.contains("√")) {
+                                                    var one = value
+
+                                                    if (prefix.isNotEmpty()) {
+                                                        one = prefix + one
+                                                    }
+
+                                                    displayText = removeZeroAfterDot(Math.sqrt(one.toDouble()).toString())
+                                                } else if (value.contains("%")) {
+                                                    val splitValue = value.split("%")
+                                                    var one = splitValue[0]
+                                                    val two = splitValue[1]
+
+                                                    if (prefix.isNotEmpty()) {
+                                                        one = prefix + one
+                                                    }
+
+                                                    displayText = removeZeroAfterDot((one.toDouble() * two.toDouble() / 100).toString())
+                                                }
+                                            } catch (e: ArithmeticException) {
+                                                e.printStackTrace()
+                                                stateError = true
+                                                displayText = "Error"
                                             }
-
-                                            // Lógica para operações matemáticas básicas (+, -, *, /)
-                                            if (value.contains("-")) {
-                                                val splitValue = value.split("-")
-                                                var one = splitValue[0]
-                                                val two = splitValue[1]
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot((one.toDouble() - two.toDouble()).toString())
-                                            } else if (value.contains("+")) {
-                                                val splitValue = value.split("+")
-                                                var one = splitValue[0]
-                                                val two = splitValue[1]
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot((one.toDouble() + two.toDouble()).toString())
-                                            } else if (value.contains("*")) {
-                                                val splitValue = value.split("*")
-                                                var one = splitValue[0]
-                                                val two = splitValue[1]
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot((one.toDouble() * two.toDouble()).toString())
-                                            } else if (value.contains("/")) {
-                                                val splitValue = value.split("/")
-                                                var one = splitValue[0]
-                                                val two = splitValue[1]
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot((one.toDouble() / two.toDouble()).toString())
-                                            } else if (value.contains("√")) {
-                                                // Lógica para raiz quadrada (√)
-                                                var one = value
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot(Math.sqrt(one.toDouble()).toString())
-                                            } else if (value.contains("%")) {
-                                                // Lógica para porcentagem (%)
-                                                val splitValue = value.split("%")
-                                                var one = splitValue[0]
-                                                val two = splitValue[1]
-
-                                                if (prefix.isNotEmpty()) {
-                                                    one = prefix + one
-                                                }
-
-                                                displayText = removeZeroAfterDot((one.toDouble() * two.toDouble() / 100).toString())
-                                            }
-                                        } catch (e: ArithmeticException) {
-                                            e.printStackTrace()
-                                            stateError = true
-                                            displayText = "Error"
                                         }
                                     }
-                                }
-                                "+", "-", "*", "/" -> {
-                                    // Lógica para adicionar operadores (+, -, *, /)
-                                    if (lastNumeric && !stateError) {
-                                        displayText += label
-                                        lastNumeric = false
+                                    "+", "-", "*", "/" -> {
+                                        if (lastNumeric && !stateError) {
+                                            displayText += label
+                                            lastNumeric = false
+                                            lastDot = false
+                                        }
+                                    }
+                                    "." -> {
+                                        if (lastNumeric && !lastDot) {
+                                            displayText += label
+                                            lastNumeric = false
+                                            lastDot = true
+                                        }
+                                    }
+                                    "+/-" -> {
+                                        if (!stateError) {
+                                            if (displayText.startsWith("-")) {
+                                                displayText = displayText.substring(1)
+                                            } else {
+                                                displayText = "-$displayText"
+                                            }
+                                        }
+                                    }
+                                    "√", "%" -> {
+                                        if (lastNumeric && !stateError) {
+                                            val tvValue = displayText
+                                            var prefix = ""
+                                            try {
+                                                var value = tvValue
+                                                if (value.startsWith("-")) {
+                                                    stateError = true
+                                                    displayText = "Error"
+                                                } else {
+                                                    if (label == "√") {
+                                                        displayText = removeZeroAfterDot(Math.sqrt(value.toDouble()).toString())
+                                                    } else if (label == "%") {
+                                                        displayText = removeZeroAfterDot((value.toDouble() / 100).toString())
+                                                    }
+                                                }
+                                            } catch (e: ArithmeticException) {
+                                                e.printStackTrace()
+                                                stateError = true
+                                                displayText = "Error"
+                                            }
+                                        }
+                                    }
+                                    else -> {
+                                        if (stateError) {
+                                            displayText = label
+                                            stateError = false
+                                        } else {
+                                            if (displayText == "0") {
+                                                displayText = label
+                                            } else {
+                                                displayText += label
+                                            }
+                                        }
+                                        lastNumeric = true
                                         lastDot = false
                                     }
                                 }
-                                "." -> {
-                                    // Lógica para adicionar o ponto decimal (.)
-                                    if (lastNumeric && !lastDot) {
-                                        displayText += label
-                                        lastNumeric = false
-                                        lastDot = true
-                                    }
-                                }
-                                "+/-" -> {
-                                    // Lógica para inverter o sinal (+/-)
-                                    if (!stateError) {
-                                        if (displayText.startsWith("-")) {
-                                            displayText = displayText.substring(1)
-                                        } else {
-                                            displayText = "-$displayText"
-                                        }
-                                    }
-                                }
-                                "√", "%" -> {
-                                    // Lógica para calcular a raiz quadrada (√) e porcentagem (%)
-                                    if (lastNumeric && !stateError) {
-                                        val tvValue = displayText
-                                        var prefix = ""
-                                        try {
-                                            var value = tvValue
-                                            if (value.startsWith("-")) {
-                                                stateError = true
-                                                displayText = "Error"
-                                            } else {
-                                                if (label == "√") {
-                                                    displayText = removeZeroAfterDot(Math.sqrt(value.toDouble()).toString())
-                                                } else if (label == "%") {
-                                                    displayText = removeZeroAfterDot((value.toDouble() / 100).toString())
-                                                }
-                                            }
-                                        } catch (e: ArithmeticException) {
-                                            e.printStackTrace()
-                                            stateError = true
-                                            displayText = "Error"
-                                        }
-                                    }
-                                }
-                                else -> {
-                                    // Lógica para adicionar dígitos numéricos
-                                    if (stateError) {
-                                        displayText = label
-                                        stateError = false
-                                    } else {
-                                        if (displayText == "0") {
-                                            displayText = label
-                                        } else {
-                                            displayText += label
-                                        }
-                                    }
-                                    lastNumeric = true
-                                    lastDot = false
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f) // Peso para ocupar espaço igual na linha
-                            .aspectRatio(1f) // Proporção para manter o botão quadrado
-                    ) {
-                        Text(
-                            text = label // Texto exibido no botão
-                        )
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(if (isPortrait) 1f else 6f) // Ajusta a proporção com base na orientação
+                        ) {
+                            Text(
+                                text = label
+                            )
+                        }
                     }
                 }
             }
@@ -265,7 +256,6 @@ fun Calculator() {
     }
 }
 
-// Função para remover zeros desnecessários após o ponto decimal
 private fun removeZeroAfterDot(result: String): String {
     return if (result.contains(".0")) {
         result.substring(0, result.length - 2)
@@ -273,6 +263,7 @@ private fun removeZeroAfterDot(result: String): String {
         result
     }
 }
+
 
 
 
